@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block title %}Friends{% endblock %}
+
+{% block content %}
+<h2>Friends List</h2>
+<div>
+    <p>Friends:</p>
+    <table>
+        {% for friend in friends %}
+       
+           <tr>
+           <td><a href="{{ url_for('friends', user_id=friend['friend'])}}"> {{ friend['friend'] }}</a></td> 
+           <td>is a mutual friend <a href="{{ url_for('friends', action='remove', friend=friend['friend']) }}">Unfollow</a></td>
+   
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
+
