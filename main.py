@@ -339,9 +339,10 @@ def messages(user_id=None):
           
           
           cursor.execute('SELECT user_id, username FROM members INNER JOIN friends ON members.username = friends.user WHERE friends.friend = %s AND friends.user <> %s;', (cur_user, cur_user,))
-          friends = cursor.fetchall()
-          
-          return render_template('messages.html', friends=friends)
+          #frnds = cursor.fetchall()
+          frnds = return_dict([x[0] for x in cursor.description],cursor.fetchall())
+
+          return render_template('messages.html', friends=frnds)
        else:
           cursor.execute('SELECT username FROM members WHERE user_id=%s;', (user_id,))
           receiver = cursor.fetchone()['username']
