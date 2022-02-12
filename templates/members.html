@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block title %}Members{% endblock %}
+
+{% block content %}
+<h2>Member List</h2>
+<div>
+    <p>Members on the Platform:</p>
+    <table>
+        {% for user in members %}
+         {% if user['username'] in mutual %}
+           <tr>
+           <td><a href="{{ url_for('members', user_id=user['user_id'])}}"> {{ user['username'] }}</a></td> 
+           <td>is a mutual friend <a href="{{ url_for('members', action='remove', user_id=user['user_id']) }}">Unfollow</a></td>
+         {% elif user['username'] in fwers %}
+           <tr>
+           <td><a href="{{ url_for('members', user_id=user['user_id'])}}"> {{ user['username'] }}</a></td> 
+           <td>is following you <a href="{{ url_for('members', action='add', user_id=user['user_id']) }}">Recip</a></td>
+         {% elif user['username'] in fwing %}
+           <tr>
+           <td><a href="{{ url_for('members', user_id=user['user_id'])}}"> {{ user['username'] }}</a></td> 
+           <td>you are following <a href="{{ url_for('members', action='remove', user_id=user['user_id']) }}">Unfollow</a></td>
+         {% else %}
+           <tr>
+           <td><a href="{{ url_for('members', user_id=user['user_id'])}}"> {{ user['username'] }}</a></td> 
+           <td><a href="{{ url_for('members', action='add', user_id=user['user_id']) }}">Send friend Request</a> </td>
+         {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
+

@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block title %}Meesages{% endblock %}
+
+{% block content %}
+<h2>Message from Friends</h2>
+<div>
+<div>
+    <p>Friends:</p>
+    <table>
+    <tr><td>
+    <table>
+        <tr>
+        {% for friend in friends %}
+       
+           <td> {{ friend['username'] }}'s 
+           <a href="{{ url_for('messages', user_id=friend['user_id']) }}" target="message_portal">     Messages
+           </a>
+           </td> 
+           
+           </tr>
+        {% endfor %}
+    
+             
+            </table>
+</div>
+<div>
+<td><iframe name="message_portal" title="Message Portal" style="border:none;width:500px;height:100%;"></iframe>
+</div>
+</div>
+{% endblock %}
+

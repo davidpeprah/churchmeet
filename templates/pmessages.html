@@ -1,0 +1,39 @@
+<!-- {% extends 'layout.html' %} 
+
+{% block title %}Private Messages{% endblock %}
+
+{% block content %}
+<h2>Private Messages</h2>-->
+<html>
+<body>
+<p>{{ username }}</p>
+
+<table>
+{% for msg in pmessage %}  
+
+{% if (msg['sender']).lower() == cur_user.lower() %}
+<tr>
+    <td> </td>
+    <td>{{ msg['message'] }}</td>
+    <td>{{ msg['sender'] }}</td>
+ </tr>
+{% else %}
+<tr>
+    <td> {{ msg['sender'] }} </td>
+    <td> {{ msg['message'] }} </td>
+    <td> </td>
+ </tr>
+{% endif %}
+{% endfor %}
+</table>
+
+<form action="{{ url_for('messages', user_id=user_id) }}" method="POST" autocomplete="off" width="50px" height="50px">
+   <textarea name="text" placeholder="Message" required> </textarea>
+   <input type="submit" value="Send">			
+</form>
+
+</body>
+
+</html>
+
+<!--{% endblock %}-->
