@@ -54,7 +54,7 @@ CREATE TABLE `members` (
 --
 
 CREATE TABLE `messages` (
-  `message_id` int(10) UNSIGNED NOT NULL,
+  `message_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `auth` varchar(16) DEFAULT NULL,
   `recip` varchar(16) DEFAULT NULL,
   `pm` char(1) DEFAULT NULL,
