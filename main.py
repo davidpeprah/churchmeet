@@ -1,4 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from datetime import datetime
+
+
 #from flask_mysqldb import MySQL
 import mysql.connector
 from datetime import timedelta
@@ -24,10 +27,10 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
 
 # Intialize MySQL
 mydb = mysql.connector.connect(
-    host="localhost",
-    user='root',
-    password='My$ql@r00t',
-    database='churchmeet'
+    host="dpeprah.mysql.pythonanywhere-services.com",
+    user='dpeprah',
+    password='MyS@lr00tdb',
+    database='dpeprah$churchhangout'
 )
 #mysql = MySQL(app)
 
@@ -46,7 +49,7 @@ def return_dict(row_headers, result):
 # http://localhost:5000/pythonlogin/ - this will be the login page, we need to use both GET and POST requests
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
-    
+
     # Output message if something goes wrong...
     msg = ''
 
@@ -61,7 +64,7 @@ def login():
         cursor = mydb.cursor()
 
         cursor.execute('SELECT * FROM members WHERE username = %s AND password = %s', (username, password,))
-        
+
         # Get row headers
         row_headers = [x[0] for x in cursor.description]
 
@@ -70,7 +73,7 @@ def login():
 
         # create a dictionary, using the headers as keys
         #member = dict(zip(row_headers,member))
-        
+
 
     # If account exists in accounts table in out database
         if member:
@@ -112,13 +115,13 @@ def register():
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
-        
+
                 # Check if account exists using MySQL
         #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor = mydb.cursor()
         cursor.execute('SELECT * FROM members WHERE username = %s', (username,))
         account = cursor.fetchone()
-        
+
 
         # If account exists show error and validation checks
         if account:
@@ -133,7 +136,7 @@ def register():
             # Account doesnt exists and the form data is valid, now insert new account into accounts table
             cursor.execute('INSERT INTO members VALUES (NULL, %s, %s, %s)', (username, password, email,))
             cursor.execute('INSERT INTO friends VALUES (NULL, %s, %s)', (username, username,))
-            mysql.connection.commit()
+            mydb.commit()
             msg = 'You have successfully registered!'
             return redirect(url_for('login'))
 
@@ -157,20 +160,23 @@ def home():
         if request.method == 'POST' and 'text' in request.form:
            message = request.form['text']
            username = session['username']
-           
-           cursor.execute('INSERT INTO messages VALUES (NULL, %s, CURRENT_TIMESTAMP, %s)', (username, message,))
-           mysql.connection.commit()
-        
-        cursor.execute('SELECT * FROM messages INNER JOIN friends ON friend = auth WHERE user=%s ORDER BY time DESC', (session['username'],))
-        
 
-        
+           cursor.execute('INSERT INTO messages VALUES (NULL, %s, NULL, NULL, CURRENT_TIMESTAMP, %s)', (username, message,))
+           mydb.commit()
+
+        cursor.execute('SELECT * FROM messages INNER JOIN friends ON friend = auth WHERE user=%s ORDER BY time DESC', (session['username'],))
+
+
+
         #news = []
         #n = cursor.fetchall()
 
         #for x in n:
          #   news.append(dict(zip(row_headers, x)))
         news = return_dict([x[0] for x in cursor.description], cursor.fetchall())
+
+        #for i in news:
+        #    i['time'] = datetime.fromtimestamp(int(i['time'])).strftime("%m/%d/%Y %H:%m")
 
         #print(news)
         return render_template('home.html', username=session['username'], news=news)
@@ -188,10 +194,10 @@ def profile():
         #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor = mydb.cursor()
         cursor.execute('SELECT * FROM members WHERE user_id = %s', (session['user_id'],))
-        
+
         # row headers
         member = return_dict([x[0] for x in cursor.description], cursor.fetchone())
-       
+
         # Show the profile page with account info
         return render_template('profile.html', account=member)
     # User is not loggedin redirect to login page
@@ -204,7 +210,7 @@ def profile():
 def members(user_id=None, action=None):
     # List members on the platform
     if 'loggedin' in session:
-       
+
        if not user_id:
           mutual = []
           fwers = []
@@ -212,7 +218,7 @@ def members(user_id=None, action=None):
 
           #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
           cursor = mydb.cursor()
-          
+
           cursor.execute('SELECT * FROM members WHERE user_id != %s', (session['user_id'],))
           members = return_dict([x[0] for x in cursor.description],cursor.fetchall())
 
@@ -227,7 +233,7 @@ def members(user_id=None, action=None):
           if followers:
              for f in followers:
                 fwers.append(f['user'])
-          
+
           if following:
              for f in following:
                  fwing.append(f['friend'])
@@ -241,8 +247,8 @@ def members(user_id=None, action=None):
                 fl = True
              if fw and fl:
                 mutual.append(member['username'])
-                
-          
+
+
           return render_template('members.html', members=members, fwers=fwers, fwing=fwing, mutual=mutual)
 
        elif action:
@@ -250,28 +256,28 @@ def members(user_id=None, action=None):
             cursor = mydb.cursor()
 
             cursor.execute('SELECT username FROM members WHERE user_id = %s', [user_id])
-            member = cursor.fetchone()
+            member = return_dict([x[0] for x in cursor.description],cursor.fetchone())
 
             if member:
                if action == "add":
                   #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
                   cursor = mydb.cursor()
                   cursor.execute('INSERT INTO friends VALUES (NULL, %s, %s)', (session['username'],member['username'],))
-                  mysql.connection.commit()
+                  mydb.commit()
                if action == "remove":
                   #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                  cursor = mydb.cursor()
+                  cursor = mydb.cursor(dictionary=True)
                   cursor.execute('DELETE FROM friends WHERE user=%s AND friend=%s', (session['username'],member['username'],))
-                  mysql.connection.commit()
-            
+                  mydb.commit()
+
             return redirect(url_for('members'))
        else:
           #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
           cursor = mydb.cursor()
           cursor.execute('SELECT * FROM members WHERE user_id = %s', [user_id])
           member = return_dict([x[0] for x in cursor.description],cursor.fetchone())
-          
-          
+
+
 
           return render_template('viewuser.html', member=member)
 
@@ -283,9 +289,9 @@ def members(user_id=None, action=None):
 @app.route('/friends/<action>/<friend>')
 @app.route('/friends/<user_id>')
 def friends(friend=None, action=None,user_id=None):
-    
+
     if 'loggedin' in session:
-       
+
          if not friend:
 
             #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -294,7 +300,7 @@ def friends(friend=None, action=None,user_id=None):
             friends = return_dict([x[0] for x in cursor.description], cursor.fetchall())
 
             return render_template('friends.html', friends=friends)
-         
+
          elif action:
             #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor = mydb.cursor()
@@ -306,24 +312,24 @@ def friends(friend=None, action=None,user_id=None):
                   #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
                   cursor = mydb.cursor()
                   cursor.execute('DELETE FROM friends WHERE user=%s AND friend=%s', (session['username'],member['username'],))
-                  mysql.connection.commit()
-               
+                  mydb.commit()
+
 
          else:
             #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor = mydb.cursor()
             cursor.execute('SELECT * FROM members WHERE username = %s', (user_id,))
-            
-            friend = return_dict([x[0] for x in cursor.description], cursor.fetchone()) 
-          
+
+            friend = return_dict([x[0] for x in cursor.description], cursor.fetchone())
+
             return render_template('viewuser.html', member=friend)
- 
+
          return redirect(url_for('friends'))
 
     return redirect(url_for('login'))
 
 @app.route('/messages/')
-@app.route('/messages/<user_id>', methods=['GET', 'POST']) 
+@app.route('/messages/<user_id>', methods=['GET', 'POST'])
 def messages(user_id=None):
 
     if 'loggedin' in session:
@@ -333,11 +339,11 @@ def messages(user_id=None):
        #cursor.execute('SELECT username FROM members WHERE user_id=%s;', (user_id,))
        #receiver = cursor.fetchone()['username']
 
-      
+
 
        if not user_id:
-          
-          
+
+
           cursor.execute('SELECT user_id, username FROM members INNER JOIN friends ON members.username = friends.user WHERE friends.friend = %s AND friends.user <> %s;', (cur_user, cur_user,))
           #frnds = cursor.fetchall()
           frnds = return_dict([x[0] for x in cursor.description],cursor.fetchall())
@@ -349,25 +355,25 @@ def messages(user_id=None):
 
           if request.method == 'POST' and 'text' in request.form:
               message = request.form['text']
-              cursor.execute('INSERT INTO pmessages VALUES (NULL, %s, %s, CURRENT_DATE(), %s, NULL);', (cur_user, receiver, message,))
-              mysql.connection.commit()
-          
-         
+              cursor.execute('INSERT INTO pmessages VALUES (NULL, %s, %s, CURRENT_DATE(), %s, CURRENT_TIMESTAMP);', (cur_user, receiver, message,))
+              mydb.commit()
+
+
 
           cursor.execute('SELECT * FROM pmessages WHERE (sender=%s OR receiver=%s) AND (sender=%s OR receiver=%s);', (cur_user,cur_user, receiver, receiver,))
           pmessage = cursor.fetchall()
 
           return render_template('pmessages.html', username=receiver, cur_user=cur_user, pmessage=pmessage, user_id=user_id)
- 
+
     else:
       return redirect(url_for('login'))
 
 
-@app.route('/sendmessages/<username>',  methods=['GET', 'POST']) 
+@app.route('/sendmessages/<username>',  methods=['GET', 'POST'])
 def sendmessages(username):
     if 'loggedin' in session:
         #cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        
+
         cursor = mydb.cursor()
         cur_user = session['username']
         #cursor.execute('SELECT username FROM members WHERE user_id=%s;', (user_id,))
@@ -375,11 +381,11 @@ def sendmessages(username):
 
         if request.method == 'POST' and 'text' in request.form:
            message = request.form['text']
-             
-             
-           cursor.execute('INSERT INTO pmessages VALUES (NULL, %s, %s, CURRENT_DATE(), %s, NULL);', (cur_user, receiver, message,))
-           mysql.connection.commit()
-           
+
+
+           cursor.execute('INSERT INTO pmessages VALUES (NULL, %s, %s, CURRENT_DATE(), %s, CURRENT_TIMESTAMP);', (cur_user, receiver, message,))
+           mydb.commit()
+
            cursor.execute('SELECT * FROM pmessages WHERE (sender=%s OR receiver=%s) AND (sender=%s OR receiver=%s);', (cur_user,cur_user, receiver, receiver,))
            pmessage = cursor.fetchall()
 
@@ -388,5 +394,6 @@ def sendmessages(username):
     else:
       return redirect(url_for('login'))
 
-if __name__ == '__main__':
-   app.run(host='0.0.0.0', port='5000')
+#if __name__ == '__main__':
+    #pass
+    #app.run(host='0.0.0.0', port='5000')
