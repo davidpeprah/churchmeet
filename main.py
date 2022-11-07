@@ -27,10 +27,10 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
 
 # Intialize MySQL
 mydb = mysql.connector.connect(
-    host="dpeprah.mysql.pythonanywhere-services.com",
+    host="localhost",
     user='dpeprah',
     password='MyS@lr00tdb',
-    database='dpeprah$churchhangout'
+    database='churchmeet'
 )
 #mysql = MySQL(app)
 
