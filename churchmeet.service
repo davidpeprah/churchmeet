@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve churchmeet
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/ubuntu/ch/churchmeet
+Environment="PATH=/usr/bin"
+ExecStart=/usr/bin/gunicorn --workers 3 --bind unix:churchmeet.sock -m 007 app:app
+
+[Install]
+WantedBy=multi-user.target
